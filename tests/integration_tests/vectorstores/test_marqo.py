@@ -2,6 +2,8 @@
 import marqo
 import pytest
 
+from typing import Dict
+
 from langchain.docstore.document import Document
 from langchain.vectorstores.marqo import Marqo
 
@@ -11,7 +13,7 @@ INDEX_NAME = "langchain-integration-tests"
 
 
 @pytest.fixture
-def client():
+def client() -> Marqo:
     # fixture for marqo client to be used throughout testing, resets the index
     client = marqo.Client(url=DEFAULT_MARQO_URL, api_key=DEFAULT_MARQO_API_KEY)
     try:
@@ -23,7 +25,7 @@ def client():
     return client
 
 
-def test_marqo(client) -> None:
+def test_marqo(client: Marqo) -> None:
     """Test end to end construction and search."""
     texts = ["foo", "bar", "baz"]
     marqo_search = Marqo.from_texts(
@@ -37,7 +39,7 @@ def test_marqo(client) -> None:
     assert results == [Document(page_content="foo")]
 
 
-def test_marqo_with_metadatas(client) -> None:
+def test_marqo_with_metadatas(client: Marqo) -> None:
     """Test end to end construction and search."""
     texts = ["foo", "bar", "baz"]
     metadatas = [{"page": i} for i in range(len(texts))]
@@ -53,7 +55,7 @@ def test_marqo_with_metadatas(client) -> None:
     assert results == [Document(page_content="foo", metadata={"page": 0})]
 
 
-def test_marqo_with_scores(client) -> None:
+def test_marqo_with_scores(client: Marqo) -> None:
     """Test end to end construction and search with scores and IDs."""
     texts = ["foo", "bar", "baz"]
     metadatas = [{"page": i} for i in range(len(texts))]
@@ -77,7 +79,7 @@ def test_marqo_with_scores(client) -> None:
     assert scores[0] > scores[1] > scores[2]
 
 
-def test_marqo_add_texts(client) -> None:
+def test_marqo_add_texts(client: Marqo) -> None:
     marqo_search = Marqo(client=client, index_name=INDEX_NAME)
     ids1 = marqo_search.add_texts(["1", "2", "3"])
     assert len(ids1) == 3
@@ -86,7 +88,7 @@ def test_marqo_add_texts(client) -> None:
     assert len(set(ids1).union(set(ids2))) == 6
 
 
-def test_marqo_search(client) -> None:
+def test_marqo_search(client: Marqo) -> None:
     marqo_search = Marqo(client=client, index_name=INDEX_NAME)
     input_documents = ["This is document 1", "2", "3"]
     ids = marqo_search.add_texts(input_documents)
@@ -95,7 +97,7 @@ def test_marqo_search(client) -> None:
     assert ids[0] == results["hits"][0]["_id"]
 
 
-def test_marqo_bulk(client) -> None:
+def test_marqo_bulk(client: Marqo) -> None:
     marqo_search = Marqo(client=client, index_name=INDEX_NAME)
     input_documents = ["This is document 1", "2", "3"]
     ids = marqo_search.add_texts(input_documents)
@@ -109,7 +111,7 @@ def test_marqo_bulk(client) -> None:
     assert bulk_results[2][0].page_content == input_documents[2]
 
 
-def test_marqo_weighted_query(client) -> None:
+def test_marqo_weighted_query(client: Marqo) -> None:
     """Test end to end construction and search."""
     texts = ["Smartphone", "Telephone"]
     marqo_search = Marqo.from_texts(
@@ -125,7 +127,7 @@ def test_marqo_weighted_query(client) -> None:
     assert results == [Document(page_content="Smartphone")]
 
 
-def test_marqo_multimodal():
+def test_marqo_multimodal() -> None:
     client = marqo.Client(url=DEFAULT_MARQO_URL, api_key=DEFAULT_MARQO_API_KEY)
     try:
         client.index(INDEX_NAME).delete()
@@ -153,7 +155,7 @@ def test_marqo_multimodal():
         ],
     )
 
-    def get_content(res):
+    def get_content(res: Dict[str, str]) -> str:
         if "text" in res:
             return res["text"]
         return f"{res['caption']}: {res['image']}"
